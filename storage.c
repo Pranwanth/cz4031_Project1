@@ -193,9 +193,6 @@ int main(void)
     // Just to note tsv(tab separated values) means they are separated by '\t'(tab)
     // We probaby need an array to hold all the blocks
     FILE* fp;
-    int maxBlockNum = floor(DISK_SIZE/BLOCK_SIZE);
-    int testNum = 0;
-    
     fp = fopen("./data.tsv", "r");
     if (fp == NULL) {
       perror("Failed: ");
@@ -212,63 +209,20 @@ int main(void)
         printf("%s\n", buffer);
     }
     */
-    Record* rec1 = (Record*) malloc(sizeof(Record));
-    char id1[10] = "0001";
-    rec1->size = sizeof(rec1);
-    strcpy(rec1->id, id1);
-    rec1->averageRating = 5.5;
-    rec1->numVotes = 1000;
-    rec1->next = NULL;
-    rec1->blockID = -1;
-    Record* rec2 = (Record*) malloc(sizeof(Record));
-    char id2[10] = "0002";
-    rec2->size = sizeof(rec2);
-    strcpy(rec2->id, id2);
-    rec2->averageRating = 6.5;
-    rec2->numVotes = 1040;
-    rec2->next = NULL;
-    rec2->blockID = -1;
-    Record* rec3 = (Record*) malloc(sizeof(Record));
-    char id3[10] = "0003";
-    rec3->size = sizeof(rec2);
-    strcpy(rec3->id, id3);
-    rec3->averageRating = 8.5;
-    rec3->numVotes = 900;
-    rec3->next = NULL;
-    rec3->blockID = -1;
 
-    printRecord(rec1);
-    Block *block1 = (Block*) malloc(sizeof(Block));
-    block1 = createBlock(NULL);
-    printBlock(block1);
-    insertRecord(rec1, block1);
-    insertRecord(rec2, block1);
-    Block* block2 = createBlock(block1);
-    printBlock(block1->next);
-    insertRecord(rec3, block2);
-    printBlock(block1->next);
-    deleteBlock(&block1, 0);
-    printBlock(block1);
-
-    /*
-    //For testing 10 records
-    while (fgets(buffer, MAX_LEN, fp) && testNum < 10) {
+    //For testing createRecord
+    
+    for(int i = 0; i < 6; i ++){
+        fgets(buffer, MAX_LEN, fp);
         buffer[strcspn(buffer, "\n")] = 0;
-        printf("%s\n", buffer);
-        Record* recPtr = (Record*) malloc(sizeof(Record)); //we have to malloc outside to prevent segementation fault
-        createRecord(buffer, recPtr);
-        printf("Record %d : %s %.2f %d size: %d \n", testNum, recPtr->id, recPtr->averageRating, recPtr->numVotes, recPtr->size);
-        free(recPtr);
-        testNum++;
+        if(i > 0)
+        {
+            Record* recPtr = (Record*) malloc(sizeof(Record)); //we have to malloc outside to prevent segementation fault
+            createRecord(buffer, recPtr);
+            printf("Record %d : %s %.2f %d size: %d \n", i, recPtr->id, recPtr->averageRating, recPtr->numVotes, recPtr->size);
+            free(recPtr);
+        }
     }
-    */
-
-    free(block1);
-    free(block2);
-    free(rec1);
-    free(rec2);
-    free(rec3);
-
 
     fclose(fp);
     return 0;
