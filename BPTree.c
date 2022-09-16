@@ -1050,6 +1050,47 @@ int cut(int numKeys)
     return floor((numKeys+1)/2);
 }
 
+void rangeQuery(BPNode* const root, Key* startKey, Key* endKey, KeyType keyType, bool verbose) {
+    int i;
+    BPNode* startLeaf = findLeaf(root, startKey, keyType, false);
+    for(i = 0; i < startLeaf->numKeys; i++)
+    {
+        if (compareGTEByKeyType(keyType, startLeaf->keys[i]->value, startKey->value) && startLeaf->keys[i]->index == startKey->index)
+        {
+            break;
+        }
+    }
+
+    // if leaf does not have the specific key return null
+    if (i == startLeaf->numKeys)
+    {
+        printf("No keys found");
+    }
+    BPNode* curLeaf = startLeaf;
+    int keysInRange[endKey -> value - startKey -> value];
+    int idx = 0;
+    while (compareLTEByKeyType(keyType, curLeaf->keys[i]->value, endKey->value) && curLeaf != NULL) {
+        if (i == curLeaf -> numKeys) {
+            if (curLeaf -> next != NULL) {
+                curLeaf = curLeaf -> next;
+                i = 0;
+                continue;
+            }
+            else {
+                break;
+            }
+        }
+        keysInRange[idx] = curLeaf -> keys[i];
+        idx++;
+        i++;
+    }
+    printf("Keys found:");
+    for (i = 0; i <= idx; i++) {
+        printf("%d", keysInRange[idx]);
+    }
+    printf("\n");
+}
+
 int main()
 {
     BPNode* root;
@@ -1073,6 +1114,5 @@ int main()
     root = insert(root, createKey(keyType, testRecord4), keyType, testRecord4, false);
     root = insert(root, createKey(keyType, testRecord5), keyType, testRecord5, true);
     root = insert(root, createKey(keyType, testRecord6), keyType, testRecord6, true);
-
     printTree(root, keyType, true);
 }
