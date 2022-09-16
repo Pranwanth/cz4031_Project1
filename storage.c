@@ -8,20 +8,32 @@
 const int DISK_SIZE = 100000;
 const int BLOCK_SIZE = 8;
 
-typedef struct Record {
+typedef struct RecordHeader
+{
     int size;
+    int blockID;
+} RecordHeader;
+
+
+typedef struct Record {
+    struct  RecordHeader header;
     char id[10]; //Changed this from char* to char[] so the size of the record is always fixed.
     float averageRating;
     int numVotes;
     struct Record* next;
-    int blockID;
 } Record;
 
-
-typedef struct Block {
+typedef struct BlockHeader
+{
     int id;
     int capacity;
     int remainSize;
+} BlockHeader;
+
+
+
+typedef struct Block {
+    struct BlockHeader header;
     Record* firstRecord;
     struct Block* next;
 } Block;
@@ -56,13 +68,13 @@ void createRecord(char* line, Record* record){
 
     record->next = NULL;
 
-    record->size = sizeof(Record);
+    record->header.size = sizeof(Record);
 
     return;
 }
 
 int isFull(Block* block, Record* record) {
-    int test = block->remainSize >= record->size ? 0 : 1;
+    int test = block->header.remainSize >= record->header.size ? 0 : 1;
     return test;
 }
 
@@ -77,7 +89,7 @@ void deleteRecord(char*id, Block* block) {
         recPtr = recPtr->next;
         block->firstRecord = recPtr;
         pre->next = NULL;
-        block->remainSize += pre->size;  //update the remaining size of the block
+        block->header.remainSize += pre->header.size;  //update the remaining size of the block
         free(pre);
     }else{ //Case 2: The record to be deleted is the middle or at the end.
 
@@ -90,22 +102,22 @@ void deleteRecord(char*id, Block* block) {
 
         pre->next = recPtr->next;
         recPtr->next = NULL;
-        block->remainSize += recPtr->size;
+        block->header.remainSize += recPtr->header.size;
         free(recPtr);
     }
 }
 
 void printRecord(Record* record) {
-    printf("Record: %s %.2f %d size: %d \n", record->id, record->averageRating, record->numVotes, record->size);
+    printf("Record: %s %.2f %d size: %d \n", record->id, record->averageRating, record->numVotes, record->header.size);
 }
 
 Block* createBlock(Block* preBlock) {
     static int blockID = 0;
     Block* newBlock = (Block*) malloc(sizeof(Block));
 
-    newBlock->id = blockID ++;
-    newBlock->capacity = BLOCK_SIZE;
-    newBlock->remainSize = BLOCK_SIZE;
+    newBlock->header.id = blockID ++;
+    newBlock->header.capacity = BLOCK_SIZE;
+    newBlock->header.remainSize = BLOCK_SIZE - sizeof(BlockHeader);
     newBlock->firstRecord = NULL;
     newBlock->next = NULL;
     
@@ -129,7 +141,7 @@ void deleteBlock(Block** firstBlock, int blockID) {
     }
 
     //first block
-    if ((*firstBlock)->id == blockID) {
+    if ((*firstBlock)->header.id == blockID) {
         temp = *firstBlock;
         (*firstBlock) = (*firstBlock)->next;
         free(temp);
@@ -138,7 +150,7 @@ void deleteBlock(Block** firstBlock, int blockID) {
     }
 
     while (temp!=NULL) {
-        if (temp->id == blockID) {
+        if (temp->header.id == blockID) {
             prev->next = temp->next;
             free(temp);
             printf("delete block with id %d successfully!\n", blockID);
@@ -156,7 +168,7 @@ void printBlock(Block* block) {
     } else {
         recordID = block->firstRecord->id;
     }
-    printf("Block: id: %d, capacity: %d, remaining: %d, first record id: %s \n", block->id, block->capacity, block->remainSize, recordID);
+    printf("Block: id: %d, capacity: %d, remaining: %d, first record id: %s \n", block->header.id, block->header.capacity, block->header.remainSize, recordID);
 }
 
 // parameter: certain block
@@ -176,8 +188,8 @@ void insertRecord(Record* record, Block* block) {
         return;
     }
 
-    record->blockID = block->id;
-    block->remainSize = block->remainSize - record->size;
+    record->header.blockID = block->header.id;
+    block->header.remainSize = block->header.remainSize - record->header.size;
 
     if (block->firstRecord==NULL) { //first record in block
         block->firstRecord = record;
@@ -219,7 +231,7 @@ int main(void)
         {
             Record* recPtr = (Record*) malloc(sizeof(Record)); //we have to malloc outside to prevent segementation fault
             createRecord(buffer, recPtr);
-            printf("Record %d : %s %.2f %d size: %d \n", i, recPtr->id, recPtr->averageRating, recPtr->numVotes, recPtr->size);
+            printf("Record %d : %s %.2f %d size: %d \n", i, recPtr->id, recPtr->averageRating, recPtr->numVotes, recPtr->header.size);
             free(recPtr);
         }
     }
