@@ -128,7 +128,7 @@ Block* createBlock(Block* preBlock) {
 
     newBlock->header.id = blockID ++;
     newBlock->header.capacity = BLOCK_SIZE;
-    newBlock->header.remainSize = BLOCK_SIZE - sizeof(BlockHeader);
+    newBlock->header.remainSize = BLOCK_SIZE - sizeof(Block);//Not BlockHeader as the firstRecPtr and nextBlockPtr also occupy space in a block 
     newBlock->firstRecord = NULL;
     newBlock->next = NULL;
     
