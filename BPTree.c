@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-const int MAX_NUMBER_KEYS = 4;
+const int MAX_NUMBER_KEYS = 2;
 const int SIZE_ID = 10;
 
 typedef enum KeyType{
@@ -51,7 +51,9 @@ BPNode* queue = NULL;
 Record* makeRecord(char* id, float averageRating, int numVotes);
 Key* makeKey(KeyType keyType);
 Key* setKey(KeyType keyType, Key* key, Record* record);
+Key* setKeyWithValue(KeyType keyType, Key* key, void* value);
 Key* createKey(KeyType keyType, Record* record);
+Key* createKeyWithValue(KeyType keyType, void* value);
 BPNode* makeNode(KeyType keyType);
 BPNode* makeLeaf(KeyType keyType);
 BPNode* startNewTree(Key* key, KeyType keyType, Record* record);
@@ -65,6 +67,11 @@ void printLeaves(BPNode* const root, KeyType keyType, bool verbose);
 int height(BPNode* const root);
 int pathToLeaves(BPNode* const root, BPNode* child);
 int cut(int numKeys);
+
+// Query functionality
+void rangeQuery(BPNode* const root, Key* startKey, Key* endKey, KeyType keyType, bool verbose);
+
+// Delete functionality
 
 // Insert functionality
 BPNode* insert(BPNode* root, Key* key, KeyType keyType, Record* record, bool verbose);
@@ -326,12 +333,41 @@ Key* setKey(KeyType keyType, Key* key, Record* record)
     }
 }
 
+Key* setKeyWithValue(KeyType keyType, Key* key, void* value)
+{
+    switch (keyType)
+    {
+    case ID:
+        // Use Id
+        *((char*)key->value) = *((char*)value);
+        break;
+    case AVG_VOTE:
+        // Use Average rating
+        *((float*)key->value) = *((float*)value);
+        break;
+    case NUM_VOTES:
+        // Use Number of votes
+        *((int*)key->value) = *((int*)value);
+        break;
+    }
+}
+
 // Use this for an easy way to create key
 Key* createKey(KeyType keyType, Record* record)
 {
     Key* newKey;
     newKey = makeKey(keyType);
     newKey = setKey(keyType, newKey, record);
+
+    return newKey;
+}
+
+// Use this for an easy way to create key with value
+Key* createKeyWithValue(KeyType keyType, void* value)
+{
+    Key* newKey;
+    newKey = makeKey(keyType);
+    newKey = setKeyWithValue(keyType, newKey, value);
 
     return newKey;
 }
@@ -1052,7 +1088,7 @@ int cut(int numKeys)
 
 void rangeQuery(BPNode* const root, Key* startKey, Key* endKey, KeyType keyType, bool verbose) {
     int i;
-    BPNode* startLeaf = findLeaf(root, startKey, keyType, false);
+    BPNode* startLeaf = findLeaf(root, startKey, keyType, verbose);
     for(i = 0; i < startLeaf->numKeys; i++)
     {
         if (compareGTEByKeyType(keyType, startLeaf->keys[i]->value, startKey->value) && startLeaf->keys[i]->index == startKey->index)
@@ -1112,7 +1148,8 @@ int main()
     root = insert(root, createKey(keyType, testRecord2), keyType, testRecord2, false);
     root = insert(root, createKey(keyType, testRecord3), keyType, testRecord3, false);
     root = insert(root, createKey(keyType, testRecord4), keyType, testRecord4, false);
-    root = insert(root, createKey(keyType, testRecord5), keyType, testRecord5, true);
-    root = insert(root, createKey(keyType, testRecord6), keyType, testRecord6, true);
+    root = insert(root, createKey(keyType, testRecord5), keyType, testRecord5, false);
+    root = insert(root, createKey(keyType, testRecord6), keyType, testRecord6, false);
+
     printTree(root, keyType, true);
 }

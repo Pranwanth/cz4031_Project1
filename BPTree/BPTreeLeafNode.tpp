@@ -76,4 +76,49 @@ namespace LmaoDB {
         assert(father != nullptr);
         return father->balance();
     }
+
+    template<typename T>
+    bool LeafNode<T>::remove(const T &key) { 
+        auto pos = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
+        if (pos == nullptr) {
+            return false;
+        }
+        int left = (N + 1) / 2;
+        int j = keys.begin() + pos;
+
+        // Erase the data
+        keys.erase(keys.begin() + pos);
+        ptr.erase(ptr.begin() + pos);
+
+        // Reorganize node
+        bool reorganized = false;
+        for (int i = j; i < keys.size(); i++) {
+            if (i == j){
+                continue;
+            }
+
+            keys.swap(j, keys[i]);
+            ptr.swap(j, keys[i]);
+            reorganized = true;
+        }
+
+        if (reorganized) {
+            keys.pop_back();
+            ptr.pop_back();
+        }
+
+        // Check whether it is the root node, if so return
+        if (father == nullptr) {
+            return true;
+        }
+
+        // If there are enough minimum nodes to still exist, leave it as it is
+        if (keys.size() > left && ptr.size() > left) {
+            return true;
+        }
+
+        // Merge nodes
+        // Try with next node pointer first
+        if (NodePtr->keys.size() > N - keys.size())
+    }
 }

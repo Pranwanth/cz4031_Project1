@@ -3,7 +3,11 @@
 #include <algorithm>
 using ll = long long;
 
-struct Record {}; // TODO connect with storage team
+struct Record {
+    char id;
+    int numVotes;
+    float avgVotes;
+}; // TODO connect with storage team
 
 namespace BPTree {
     #define nullRecord (shared_ptr<Record>(nullptr))
@@ -80,6 +84,5 @@ namespace BPTree {
 
 
 int main() {
-    auto x = BPTree::RegularNode<long long>();
-
+    auto x = BPTree::RegularNode<int>();
 }

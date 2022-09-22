@@ -20,6 +20,8 @@ namespace LmaoDB {
         virtual vector<Record *> rangeQuery(const T &l, const T &r) = 0;                       // interface
         virtual void rangeQuery(vector<Record *> &ret, const T &l, const T &r) = 0; // actual call; save movement cost
         virtual shared_ptr<Node<T>> insert(const T &key, const Record *const record) = 0;
+        virtual bool remove(const T &key) = 0;
+        virtual void mergeNode(const T &key, vector<Record *> records) = 0;
 
     protected:
         const static int N = 4; // max number of key
@@ -47,6 +49,10 @@ namespace LmaoDB {
 
         SharedNodePtr<T> insert(const T &key, const Record *const record);
 
+        bool remove(const T &key);
+
+        void mergeNode(const T &key, vector<Record *> records);
+
     private:
         vector<Record *> ptr;
         LeafNode<T> *finalPtr;
@@ -66,6 +72,10 @@ namespace LmaoDB {
         void rangeQuery(vector<Record *> &ret, const T &l, const T &r);
 
         SharedNodePtr<T> insert(const T &key, const Record *const record);
+
+        bool remove(const T &key);
+
+        void mergeNode(const T &key, vector<Record *> records);
 
         friend LeafNode<T>; // I need to expose insertSubNode to Leaf's private functions
     private:
