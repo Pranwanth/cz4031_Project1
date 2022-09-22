@@ -2,12 +2,12 @@
 
 namespace LmaoDB {
     template<typename T>
-    RegularNode<T>::RegularNode(const shared_ptr<Node<T>> &currFather) {
-        father = new weak_ptr<Node<T>>(currFather);
+    RegularNode<T>::RegularNode(RegularNode<T>* const father_) {
+        father = father_;
     }
 
     template<typename T>
-    const Record *RegularNode<T>::query(const T &key) {
+    Record * const RegularNode<T>::query(const T &key) {
         return queryImmediateNext(key)->query(key);
     }
 
@@ -24,35 +24,35 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    SharedNodePtr<T> RegularNode<T>::insert(const T &key, const Record *const record) {
-        return queryImmediateNext(key)->insert(key, record);
-//        balance();
+    shared_ptr<Node<T>> RegularNode<T>::insert(const T &key, Record *const record) {
+        return queryImmediateNext(key)->insert(key, record); // balance is called at leaf node, and recurse back
     }
 
     template<typename T>
-    SharedNodePtr<T> RegularNode<T>::queryImmediateNext(const T &key) {
+    Node<T>* RegularNode<T>::queryImmediateNext(const T &key) {
         auto loc = upper_bound(keys.begin(), keys.end(), key) - keys.begin();
-        return ptr[loc];
+        return ptr[loc].get();
     }
 
     template<typename T>
-    void RegularNode<T>::insertSubNode(NodePtr<T> newPtr, const T &key) {
-        assert(keys.find(key) == keys.end());
-        uint32_t position = lower_bound(keys.begin(), keys.end(), key)- keys.begin();
+    void RegularNode<T>::insertSubNode(Node<T>* newPtr, const T &key) {
+        assert(find(keys.begin(), keys.end(), key) == keys.end());
+        uint32_t position = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
         keys.insert(keys.begin() + position, key);
         ptr.insert(ptr.begin() + position + 1, shared_ptr<Node<T>>(
                 newPtr)); // such location will always be valid; now father will manage the life of son.
     }
 
     template<typename T>
-    SharedNodePtr<T> RegularNode<T>::balance() {
-        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(this) : father->balance());
+    shared_ptr<Node<T>> RegularNode<T>::balance() {
+        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(nullptr) : father->balance());
         else {
             assert(keys.size() == N + 1 && keys.size() == ptr.size());
             cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
-            shared_ptr<Node<T>> newNode(new RegularNode(father));
+            shared_ptr<RegularNode<T>> newNode(new RegularNode(father));
 
             // 1. Populate Right Node
+            auto x = keys[0];
 
             for (int i = N / 2 + 1; i < keys.size(); ++i) newNode->keys.emplace_back(move(keys[i]));
             for (int i = N / 2 + 1; i < ptr.size(); ++i) newNode->ptr.emplace_back(ptr[i]);
@@ -71,7 +71,7 @@ namespace LmaoDB {
                 father->ptr.emplace_back(newNode);
                 father->keys.emplace_back(extraKey);
             } else {
-
+                // TODO
             }
 
             // 4. update new father for right half
