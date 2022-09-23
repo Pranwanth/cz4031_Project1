@@ -1,9 +1,8 @@
-
+#include <assert.h>
 namespace LmaoDB {
-    template<typename T> using NodePtr = Node<T> *;
 
     template<typename T>
-    LeafNode<T>::LeafNode(NodePtr<T> LeftPtr) {
+    LeafNode<T>::LeafNode(LeafNode<T>* LeftPtr) {
         if (LeftPtr != nullptr) {
             auto RightPtr = LeftPtr->finalPtr;
             this->finalPtr = RightPtr;
@@ -12,7 +11,7 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    const Record *LeafNode<T>::query(const T &key) {
+    Record* const LeafNode<T>::query(const T &key) {
         auto ans = lower_bound(keys.begin(), keys.end(), key);
         if (*ans != key)
             return nullptr;
@@ -44,7 +43,7 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    SharedNodePtr<T> LeafNode<T>::insert(const T &key, const Record *const record) {
+    shared_ptr<Node<T>> LeafNode<T>::insert(const T &key, Record *const record) {
         auto pos = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
         keys.insert(keys.begin() + pos, key);
         ptr.insert(ptr.begin() + pos, record);
@@ -52,12 +51,12 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    SharedNodePtr<T> LeafNode<T>::balance() {
-        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(this) : father->balance());
+    shared_ptr<Node<T>> LeafNode<T>::balance() {
+        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(nullptr) : father->balance());
         assert(keys.size() == ptr.size() && keys.size() == N + 1);
         cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
         // left has floor((N + 1) / 2) keys, right has rest
-        NodePtr<T> newNode = new LeafNode(this);
+        LeafNode<T>* newNode = new LeafNode(this);
         int left = (N + 1) / 2;
 //            newNode->keys.reserve(right);
         for (int i = left; i <= N; ++i) {
@@ -78,47 +77,72 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    bool LeafNode<T>::remove(const T &key) { 
-        auto pos = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
-        if (pos == nullptr) {
-            return false;
+    shared_ptr<Node<T>> LeafNode<T>::remove(const T &key, const shared_ptr<Node<T>> root) { 
+        if (query(key) == nullptr) {
+            cout << "Could not find key" << endl;
+            return root;
         }
+        auto pos = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
         int left = (N + 1) / 2;
-        int j = keys.begin() + pos;
 
         // Erase the data
         keys.erase(keys.begin() + pos);
         ptr.erase(ptr.begin() + pos);
 
-        // Reorganize node
-        bool reorganized = false;
-        for (int i = j; i < keys.size(); i++) {
-            if (i == j){
-                continue;
-            }
-
-            keys.swap(j, keys[i]);
-            ptr.swap(j, keys[i]);
-            reorganized = true;
-        }
-
-        if (reorganized) {
-            keys.pop_back();
-            ptr.pop_back();
-        }
-
         // Check whether it is the root node, if so return
         if (father == nullptr) {
-            return true;
+            return root;
         }
 
         // If there are enough minimum nodes to still exist, leave it as it is
         if (keys.size() > left && ptr.size() > left) {
-            return true;
+            return root;
         }
 
-        // Merge nodes
-        // Try with next node pointer first
-        if (NodePtr->keys.size() > N - keys.size())
+        // Borrow keys/ptrs
+        if (this->finalPtr != nullptr) {
+            // Has enough keys / ptrs to give
+            if (this->finalPtr->keys.size() - 1 > left) {
+                this->insert(this->finalPtr->keys[0], this->finalPtr->ptr[0]);
+                this->finalPtr->remove(this->finalPtr->keys[0], root);
+
+                return root;
+            }
+        }
+
+        // Go to parent to find sibilings to take from
+        auto done = father->helpSibiling(key, root);
+        if (done) {
+            return root;
+        }
+
+        vector<T> curKeys;
+        vector<Record *> records;
+        for (int i = 0; i < this->keys.size(); i++) {
+            curKeys.push_back(this->keys[i]);
+            records.push_back(this->ptr[i]);
+        }
+
+        return father->mergeNodes(curKeys, records, root);
+    }
+
+    template<typename T>
+    shared_ptr<Node<T>> LeafNode<T>::mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root) {
+        for (int i = 0; i < this->keys.size(); i++) {
+            keys.push_back(this->keys[i]);
+            ptrs.push_back(this->ptr[i]);
+        }
+
+        return nullptr;
+    }
+
+    template<typename T>
+    vector<T> LeafNode<T>::getKeys() {
+        return this->keys;
+    }
+
+    template<typename T>
+    vector<Record *> LeafNode<T>::getPtrs() {
+        return this->ptr;
     }
 }
