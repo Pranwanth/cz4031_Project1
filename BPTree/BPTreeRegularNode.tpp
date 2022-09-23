@@ -158,4 +158,21 @@ namespace LmaoDB {
     vector<Record *> RegularNode<T>::getPtrs() {
         exit(EXIT_FAILURE);
     }
+
+    template<typename T>
+    void RegularNode<T>::display() {
+        cout << "Regular Node: { ";
+        for (int i = 0; i < this->keys.size(); i++) {
+            if (i + 1 == this->keys.size()) {
+                cout << this->keys.at(i) << " ";
+            } else {
+                cout << this->keys.at(i) << ", ";
+            }
+        }
+        cout << "} ->" << endl;
+
+        for (int i = 0; i < this->ptr.size(); i++) {
+            this->ptr.at(i)->display();
+        }
+    }
 }

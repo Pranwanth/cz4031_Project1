@@ -27,6 +27,7 @@ namespace LmaoDB {
         virtual shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root) = 0;
         virtual vector<T> getKeys() = 0;
         virtual vector<Record *> getPtrs() = 0;
+        virtual void display() = 0;
     protected:
         const static int N = 4; // max number of key
         RegularNode<T> *father = nullptr;
@@ -51,6 +52,7 @@ namespace LmaoDB {
         shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root);
         vector<T> getKeys();
         vector<Record *> getPtrs();
+        void display();
     private:
         vector<Record *> ptr;
         LeafNode<T> *finalPtr;
@@ -72,6 +74,7 @@ namespace LmaoDB {
         shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root);
         vector<T> getKeys();
         vector<Record *> getPtrs();
+        void display();
         
         friend LeafNode<T>; // I need to expose insertSubNode to Leaf's private functions; no need extra template here
     private:

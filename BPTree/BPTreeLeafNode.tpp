@@ -145,4 +145,17 @@ namespace LmaoDB {
     vector<Record *> LeafNode<T>::getPtrs() {
         return this->ptr;
     }
+
+    template<typename T>
+    void LeafNode<T>::display() {
+        cout << "Leaf Node : [ ";
+        for (int i = 0; i < this->keys.size(); i++) {
+            if (i + 1 == this->keys.size()) {
+                cout << this->keys.at(i) << " ";
+            } else {
+                cout << this->keys.at(i) << ", ";
+            }
+        }
+        cout << "]" << endl;
+    }
 }
