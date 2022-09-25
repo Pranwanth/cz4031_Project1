@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(BPTree)
 add_executable(LmaoDB
         storage.h
-        storage.c
+        storage.cpp
         BPTree.h
         BPTreeLeafNode.tpp
         BPTreeRegularNode.tpp

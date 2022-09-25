@@ -8,36 +8,36 @@
 #include <stdbool.h>
 
 #define MAX_LEN 2560
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 60
-const int DISK_SIZE = 100000;
-const int BLOCK_SIZE = 200;
-const char *PATH = "./data.tsv";
+static char PBSTR[] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+static int PBWIDTH = 60;
+static int DISK_SIZE = 100000;
+static int BLOCK_SIZE = 200;
+static char *DATA_PATH = "./data.tsv";
 
-typedef struct RecordHeader {
+struct RecordHeader {
     int size;
     int blockID;
-} RecordHeader;
+};
 
-typedef struct Record {
+struct Record {
     struct RecordHeader header;
     char id[11]; //Changed this from char* to char[] so the size of the record is always fixed.
     float averageRating;
     int numVotes;
-    struct Record *next;
-} Record;
+    Record *next;
+};
 
-typedef struct BlockHeader {
+struct BlockHeader {
     int id;
     int capacity;
     int remainSize;
-} BlockHeader;
+};
 
-typedef struct Block {
+struct Block {
     struct BlockHeader header;
     Record *firstRecord;
     struct Block *next;
-} Block;
+};
 
 void createRecord(char *line, Record *record);
 

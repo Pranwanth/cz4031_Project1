@@ -1,13 +1,13 @@
 #include <assert.h>
 namespace LmaoDB {
 
-    template<typename T>
-    LeafNode<T>::LeafNode(RegularNode<T>* const father_) {
+    template<typename T, typename R>
+    LeafNode<T, R>::LeafNode(RegularNode<T, R>* const father_) {
         father = father_;
     }
 
-    template<typename T>
-    Record* LeafNode<T>::query(const T &key) {
+    template<typename T, typename R>
+    R* LeafNode<T, R>::query(const T &key) {
         auto ans = lower_bound(keys.begin(), keys.end(), key);
         if (*ans != key)
             return nullptr;
@@ -15,15 +15,15 @@ namespace LmaoDB {
             return ptr[ans - keys.begin()];
     }
 
-    template<typename T>
-    vector<Record *> LeafNode<T>::rangeQuery(const T &l, const T &r) {
-        vector<Record *> ret;
+    template<typename T, typename R>
+    vector<R *> LeafNode<T, R>::rangeQuery(const T &l, const T &r) {
+        vector<R *> ret;
         rangeQuery(ret, l, r);
         return ret;
     }
 
-    template<typename T>
-    void LeafNode<T>::rangeQuery(vector<Record *> &ret, const T &l, const T &r) {
+    template<typename T, typename R>
+    void LeafNode<T, R>::rangeQuery(vector<R *> &ret, const T &l, const T &r) {
         auto ans = lower_bound(keys.begin(), keys.end(), l);
         if (ans == keys.end()) {
             return;
@@ -38,16 +38,16 @@ namespace LmaoDB {
         }
     }
 
-    template<typename T>
-    shared_ptr<Node<T>> LeafNode<T>::insert(const T &key, Record *const record, const shared_ptr<Node<T>>& oldRoot) {
+    template<typename T, typename R>
+    shared_ptr<Node<T, R>> LeafNode<T, R>::insert(const T &key, R *const record, const shared_ptr<Node<T, R>>& oldRoot) {
         auto pos = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
         keys.insert(keys.begin() + pos, key);
         ptr.insert(ptr.begin() + pos, record);
         return balance(oldRoot);
     }
 
-    template<typename T>
-    shared_ptr<Node<T>> LeafNode<T>::balance(const shared_ptr<Node<T>>& oldRoot) {
+    template<typename T, typename R>
+    shared_ptr<Node<T, R>> LeafNode<T, R>::balance(const shared_ptr<Node<T, R>>& oldRoot) {
         if (keys.size() <= N) return oldRoot;
         assert(keys.size() == ptr.size() && keys.size() == N + 1);
         cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
@@ -69,21 +69,21 @@ namespace LmaoDB {
         // add into father
         if (father == nullptr) { // we are current root, we need new root.
             assert(oldRoot.get() == this);
-            father = new RegularNode<T>(nullptr);
+            father = new RegularNode<T, R>(nullptr);
             newNode->father = father;
 
             auto newPtr(oldRoot); // copy of shared ptr to oneself
             father->ptr.emplace_back(newPtr); // lifecycle of currNode is OK even if
             father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of newNode is OK
-            return shared_ptr<Node<T>>(father); // claim. lifecycle does not get interrupt
+            return shared_ptr<Node<T, R>>(father); // claim. lifecycle does not get interrupt
         } else { // tree structure stays same
             father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of newNode is OK
             return father->balance(oldRoot);
         }
     }
 
-    template<typename T>
-    shared_ptr<Node<T>> LeafNode<T>::remove(const T &key, const shared_ptr<Node<T>> root) {
+    template<typename T, typename R>
+    shared_ptr<Node<T, R>> LeafNode<T, R>::remove(const T &key, const shared_ptr<Node<T, R>> root) {
         if (query(key) == nullptr) {
             cout << "Could not find key" << endl;
             return root;
@@ -123,7 +123,7 @@ namespace LmaoDB {
         }
 
         vector<T> curKeys;
-        vector<Record *> records;
+        vector<R *> records;
         for (int i = 0; i < this->keys.size(); i++) {
             curKeys.push_back(this->keys[i]);
             records.push_back(this->ptr[i]);
@@ -132,8 +132,8 @@ namespace LmaoDB {
         return father->mergeNodes(curKeys, records, root);
     }
 
-    template<typename T>
-    shared_ptr<Node<T>> LeafNode<T>::mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root) {
+    template<typename T, typename R>
+    shared_ptr<Node<T, R>> LeafNode<T, R>::mergeNodes(vector<T> keys, vector<R *> ptrs, const shared_ptr<Node<T, R>> root) {
         for (int i = 0; i < this->keys.size(); i++) {
             keys.push_back(this->keys[i]);
             ptrs.push_back(this->ptr[i]);
@@ -142,18 +142,18 @@ namespace LmaoDB {
         return nullptr;
     }
 
-    template<typename T>
-    vector<T> LeafNode<T>::getKeys() {
+    template<typename T, typename R>
+    vector<T> LeafNode<T, R>::getKeys() {
         return this->keys;
     }
 
-    template<typename T>
-    vector<Record *> LeafNode<T>::getPtrs() {
+    template<typename T, typename R>
+    vector<R *> LeafNode<T, R>::getPtrs() {
         return this->ptr;
     }
 
-    template<typename T>
-    void LeafNode<T>::display() {
+    template<typename T, typename R>
+    void LeafNode<T, R>::display() {
         cout << "Leaf Node : [ ";
         for (int i = 0; i < this->keys.size(); i++) {
             if (i + 1 == this->keys.size()) {

@@ -1,11 +1,9 @@
-#define _GNU_SOURCE
-
 #include "storage.h"
 
 void createRecord(char *line, Record *record) {
     char *tuple;
     char delim[2] = "\t";
-    tuple = malloc(sizeof(char) * (strlen(line) + 1));
+    tuple = new char[strlen(line) + 1];
     strcpy(tuple, line);
 
     char *id = strtok(tuple, delim);
@@ -21,7 +19,6 @@ void createRecord(char *line, Record *record) {
 
     record->header.size = sizeof(Record);
 
-    return;
 }
 
 int isFull(Block *block, Record *record) {
@@ -185,7 +182,7 @@ void printProgress(double percentage) {
 
 int getLineNum() {
     FILE *fp;
-    fp = fopen(PATH, "r");
+    fp = fopen(DATA_PATH, "r");
     char ch;
     int lines = 0;
 
