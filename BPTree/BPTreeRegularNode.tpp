@@ -7,7 +7,7 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    Record * const RegularNode<T>::query(const T &key) {
+    Record * RegularNode<T>::query(const T &key) {
         return queryImmediateNext(key)->query(key);
     }
 
@@ -24,8 +24,8 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    shared_ptr<Node<T>> RegularNode<T>::insert(const T &key, Record *const record) {
-        return queryImmediateNext(key)->insert(key, record); // balance is called at leaf node, and recurse back
+    shared_ptr<Node<T>> RegularNode<T>::insert(const T &key, Record *const record, const shared_ptr<Node<T>>& oldRoot) {
+        return queryImmediateNext(key)->insert(key, record, oldRoot); // balance is called at leaf node, and recurse back
     }
 
     template<typename T>
@@ -44,8 +44,8 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    shared_ptr<Node<T>> RegularNode<T>::balance() {
-        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(nullptr) : father->balance());
+    shared_ptr<Node<T>> RegularNode<T>::balance(const shared_ptr<Node<T>>& oldRoot) {
+        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(nullptr) : father->balance(oldRoot));
         else {
             assert(keys.size() == N + 1 && keys.size() == ptr.size());
             cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
@@ -77,7 +77,7 @@ namespace LmaoDB {
             // 4. update new father for right half
 
             assert(father != nullptr); // split of nonleaf node always generate father
-            return father->balance();
+            return father->balance(oldRoot);
         }
     }
     template<typename T>
@@ -93,7 +93,7 @@ namespace LmaoDB {
             vector<T> keys = this->ptr.at(position-1)->getKeys();
             vector<Record *> ptrs = this->ptr.at(position-1)->getPtrs();
             if (keys.size() - 1 > leftKeys) {
-                this->ptr.at(position)->insert(keys.back(), ptrs.back());
+                this->ptr.at(position)->insert(keys.back(), ptrs.back(), root);
                 this->ptr.at(position-1)->remove(keys.back(), root);
 
                 return true;
@@ -115,7 +115,7 @@ namespace LmaoDB {
             // When node still has minimum nodes, insert back in
             if (this->ptr.size() > minNumPtrs) {
                 for (int j = 0; j < keys.size(); j++) {
-                    this->insert(keys[j], ptrs[j]);
+                    this->insert(keys[j], ptrs[j], root);
                 }
 
                 return root;
@@ -135,7 +135,7 @@ namespace LmaoDB {
         if (this->ptr.size() == 1) {
             // When it is left with 1 pointer
             for (int i = 0; i < keys.size(); i++) {
-                this->ptr[0]->insert(keys[i], ptrs[i]);
+                this->ptr[0]->insert(keys[i], ptrs[i], root);
             }
             // Remaining node becomes the new root node
             return this->ptr[0];
@@ -143,7 +143,7 @@ namespace LmaoDB {
 
         // Since there are still more than 2 pointers, insert the keys and pointers
         for (int i = 0; i < this->ptr.size(); i++) {
-            this->insert(keys[i], ptrs[i]);
+            this->insert(keys[i], ptrs[i], root);
         }
 
         return root;

@@ -11,16 +11,13 @@ int main() {
     rec[5].key = 5, rec[5].val = "fifth entry";
     rec[6].key = 6, rec[6].val = "sixth entry";
 
-    Node<int>* tmpPtr = new LeafNode<int>; // okay to pass upcasted to shared_ptr constructor
-    shared_ptr<Node<int>> root(tmpPtr);
+    shared_ptr<Node<int>> root(new LeafNode<int>);
     for (int i = 1; i <= NUM_ENTRY; ++i) {
-        auto newRoot = root->insert(rec[i].key, &rec[i]);
-        if (newRoot.get() != nullptr) root = newRoot; // can safely discard old
+        auto newRoot = root->insert(rec[i].key, &rec[i], root);
+        root = newRoot; // can safely discard old (?)
+        cout << "After i = " << i << ": \n";
+        root->display();
     }
-    
-    root->display();
-
     root = root->remove(rec[1].key, root);
-
     root->display();
 }

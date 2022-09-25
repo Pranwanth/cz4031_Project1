@@ -11,7 +11,7 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    Record* const LeafNode<T>::query(const T &key) {
+    Record* LeafNode<T>::query(const T &key) {
         auto ans = lower_bound(keys.begin(), keys.end(), key);
         if (*ans != key)
             return nullptr;
@@ -43,22 +43,24 @@ namespace LmaoDB {
     }
 
     template<typename T>
-    shared_ptr<Node<T>> LeafNode<T>::insert(const T &key, Record *const record) {
+    shared_ptr<Node<T>> LeafNode<T>::insert(const T &key, Record *const record, const shared_ptr<Node<T>>& oldRoot) {
         auto pos = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
         keys.insert(keys.begin() + pos, key);
         ptr.insert(ptr.begin() + pos, record);
-        return balance();
+        return balance(oldRoot);
     }
 
     template<typename T>
-    shared_ptr<Node<T>> LeafNode<T>::balance() {
-        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(nullptr) : father->balance());
+    shared_ptr<Node<T>> LeafNode<T>::balance(const shared_ptr<Node<T>>& oldRoot) {
+        if (keys.size() <= N) return oldRoot;
         assert(keys.size() == ptr.size() && keys.size() == N + 1);
         cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
+
         // left has floor((N + 1) / 2) keys, right has rest
-        LeafNode<T>* newNode = new LeafNode(this);
+        auto newNode = new LeafNode(this);
         int left = (N + 1) / 2;
-//            newNode->keys.reserve(right);
+
+        // split nodes
         for (int i = left; i <= N; ++i) {
             newNode->keys.emplace_back(move(keys[i]));
             newNode->ptr.emplace_back(ptr[i]);
@@ -67,17 +69,23 @@ namespace LmaoDB {
             keys.pop_back();
             ptr.pop_back();
         }
-        if (father == nullptr) {
+        // add into father
+        if (father == nullptr) { // we are current root, we need new root.
             father = new RegularNode<T>(nullptr);
-            father->ptr.emplace_back(SharedNodePtr<T>(this));
-            father->insertSubNode(newNode, newNode->keys[0]);
+            assert(oldRoot.get() == this);
+            auto newPtr(oldRoot); // copy of shared ptr to oneself
+            father->ptr.emplace_back(newPtr); // lifecycle of currNode is OK even if
+            father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of newNode is OK
+            return shared_ptr<Node<T>>(father); // claim. lifecycle does not get interrupt
+        } else { // tree structure stays same
+            father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of newNode is OK
+            return father->balance(oldRoot);
         }
-        assert(father != nullptr);
-        return father->balance();
+
     }
 
     template<typename T>
-    shared_ptr<Node<T>> LeafNode<T>::remove(const T &key, const shared_ptr<Node<T>> root) { 
+    shared_ptr<Node<T>> LeafNode<T>::remove(const T &key, const shared_ptr<Node<T>> root) {
         if (query(key) == nullptr) {
             cout << "Could not find key" << endl;
             return root;
@@ -103,8 +111,8 @@ namespace LmaoDB {
         if (this->finalPtr != nullptr) {
             // Has enough keys / ptrs to give
             if (this->finalPtr->keys.size() - 1 > left) {
-                this->insert(this->finalPtr->keys[0], this->finalPtr->ptr[0]);
-                this->finalPtr->remove(this->finalPtr->keys[0], root);
+//                this->insert(this->finalPtr->keys[0], this->finalPtr->ptr[0]); // TODO fix
+//                this->finalPtr->remove(this->finalPtr->keys[0], root);
 
                 return root;
             }
