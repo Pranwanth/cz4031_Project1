@@ -7,33 +7,28 @@
 #include <iostream>
 #include <string>
 
-struct Record {
-    int key;
-    std::string val;
-}; // TODO connect with storage team
-
 namespace LmaoDB {
     using namespace std;
     template<typename T> class RegularNode; // for cyclic dependency
     template<typename T> class LeafNode;
 
-    template<typename T>
+    template<typename T, typename R>
     class Node {
     public:
-        virtual Record * query(const T &key) = 0;
-        virtual vector<Record *> rangeQuery(const T &l, const T &r) = 0;                       // interface
-        virtual void rangeQuery(vector<Record *> &ret, const T &l, const T &r) = 0; // actual call; save movement cost
-        virtual shared_ptr<Node<T>> insert(const T &key, Record * record, const shared_ptr<Node<T>>& oldRoot) = 0;
-        virtual shared_ptr<Node<T>> remove(const T &key, shared_ptr<Node<T>> root) = 0;
-        virtual shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, shared_ptr<Node<T>> root) = 0;
+        virtual R * query(const T &key) = 0;
+        virtual vector<R *> rangeQuery(const T &l, const T &r) = 0;                       // interface
+        virtual void rangeQuery(vector<R *> &ret, const T &l, const T &r) = 0; // actual call; save movement cost
+        virtual shared_ptr<Node<T, R>> insert(const T &key, R * record, const shared_ptr<Node<T, R>>& oldRoot) = 0;
+        virtual shared_ptr<Node<T, R>> remove(const T &key, shared_ptr<Node<T, R>> root) = 0;
+        virtual shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<R *> ptrs, shared_ptr<Node<T, R>> root) = 0;
         virtual vector<T> getKeys() = 0;
-        virtual vector<Record *> getPtrs() = 0;
+        virtual vector<R *> getPtrs() = 0;
         virtual void display() = 0;
         RegularNode<T> *father = nullptr;
     protected:
         const static int N = 2; // max number of key
         vector<T> keys;
-        virtual shared_ptr<Node<T>> balance(const shared_ptr<Node<T>>& oldRoot) = 0;
+        virtual shared_ptr<Node<T, R>> balance(const shared_ptr<Node<T, R>>& oldRoot) = 0;
     };
 
     // @brief abbreviation for Node Pointer

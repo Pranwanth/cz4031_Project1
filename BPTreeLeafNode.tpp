@@ -59,7 +59,7 @@ namespace LmaoDB {
 
         // split nodes
         for (int i = left; i <= N; ++i) {
-            newNode->keys.emplace_back(move(keys[i]));
+            newNode->keys.emplace_back(std::move(keys[i]));
             newNode->ptr.emplace_back(ptr[i]);
         }
         while (keys.size() > left && ptr.size() > left) {
