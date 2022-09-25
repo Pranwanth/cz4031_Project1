@@ -18,6 +18,6 @@ int main() {
         cout << "After i = " << i << ": \n";
         root->display();
     }
-    root = root->remove(rec[1].key, root);
+    // root = root->remove(rec[1].key, root);
     root->display();
 }

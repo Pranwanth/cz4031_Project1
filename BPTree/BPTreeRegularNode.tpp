@@ -45,17 +45,16 @@ namespace LmaoDB {
 
     template<typename T>
     shared_ptr<Node<T>> RegularNode<T>::balance(const shared_ptr<Node<T>>& oldRoot) {
-        if (keys.size() <= N) return (father == nullptr ? shared_ptr<Node<T>>(nullptr) : father->balance(oldRoot));
+        if (keys.size() <= N) return oldRoot;
         else {
-            assert(keys.size() == N + 1 && keys.size() == ptr.size());
+            assert(keys.size() == N + 1);
             cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
-            shared_ptr<RegularNode<T>> newNode(new RegularNode(father));
-
+            auto newNode = new RegularNode(father);
+            int left = (N + 1) / 2;
             // 1. Populate Right Node
             auto x = keys[0];
-
             for (int i = N / 2 + 1; i < keys.size(); ++i) newNode->keys.emplace_back(move(keys[i]));
-            for (int i = N / 2 + 1; i < ptr.size(); ++i) newNode->ptr.emplace_back(ptr[i]);
+            for (int i = N / 2 + 1; i < ptr.size(); ++i) ptr[i]->father = newNode, newNode->ptr.emplace_back(ptr[i]); // change father as well
             auto extraKey = keys[N / 2];
             assert(newNode->keys.size() >= N / 2);
             assert(newNode->ptr.size() >= N / 2 + 1);
@@ -66,18 +65,19 @@ namespace LmaoDB {
 
             // 3. register new "node"
             if (father == nullptr) { // if there is no father, we can trivially build father with 1 key & 2 ptr
+                assert(oldRoot.get() == this);
                 father = new RegularNode<T>(nullptr);
-                father->ptr.emplace_back(SharedNodePtr<T>(this));
-                father->ptr.emplace_back(newNode);
+                newNode->father = father;
+
+                auto cpyCurr(oldRoot);
+                father->ptr.emplace_back(cpyCurr); // lifecycle of curr node
+                father->ptr.emplace_back(SharedNodePtr<T>(newNode)); // lifecycle of new node
                 father->keys.emplace_back(extraKey);
+                return shared_ptr<Node<T>>(father);
             } else {
-                // TODO
+                father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of new node
+                return father->balance(oldRoot);
             }
-
-            // 4. update new father for right half
-
-            assert(father != nullptr); // split of nonleaf node always generate father
-            return father->balance(oldRoot);
         }
     }
     template<typename T>
@@ -86,7 +86,7 @@ namespace LmaoDB {
     }
     
     template<typename T>
-    bool RegularNode<T>::helpSibiling(const T &key, const shared_ptr<Node<T>> root) {
+    bool RegularNode<T>::helpSibling(const T &key, const shared_ptr<Node<T>> root) {
         int leftKeys = (N - 1) / 2;
         uint32_t position = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
         if (position != 0) {
@@ -162,17 +162,17 @@ namespace LmaoDB {
     template<typename T>
     void RegularNode<T>::display() {
         cout << "Regular Node: { ";
-        for (int i = 0; i < this->keys.size(); i++) {
-            if (i + 1 == this->keys.size()) {
-                cout << this->keys.at(i) << " ";
+        for (int i = 0; i < keys.size(); i++) {
+            if (i + 1 == keys.size()) {
+                cout << keys[i] << " ";
             } else {
-                cout << this->keys.at(i) << ", ";
+                cout << keys[i] << ", ";
             }
         }
         cout << "} ->" << endl;
 
-        for (int i = 0; i < this->ptr.size(); i++) {
-            this->ptr.at(i)->display();
+        for (int i = 0; i < ptr.size(); i++) {
+            ptr[i]->display();
         }
     }
 }

@@ -2,12 +2,8 @@
 namespace LmaoDB {
 
     template<typename T>
-    LeafNode<T>::LeafNode(LeafNode<T>* LeftPtr) {
-        if (LeftPtr != nullptr) {
-            auto RightPtr = LeftPtr->finalPtr;
-            this->finalPtr = RightPtr;
-            LeftPtr->finalPtr = this;
-        } // else current node is root, no further action is needed
+    LeafNode<T>::LeafNode(RegularNode<T>* const father_) {
+        father = father_;
     }
 
     template<typename T>
@@ -57,7 +53,8 @@ namespace LmaoDB {
         cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
 
         // left has floor((N + 1) / 2) keys, right has rest
-        auto newNode = new LeafNode(this);
+        auto newNode = new LeafNode(father);
+        this->finalPtr = newNode;
         int left = (N + 1) / 2;
 
         // split nodes
@@ -71,8 +68,10 @@ namespace LmaoDB {
         }
         // add into father
         if (father == nullptr) { // we are current root, we need new root.
-            father = new RegularNode<T>(nullptr);
             assert(oldRoot.get() == this);
+            father = new RegularNode<T>(nullptr);
+            newNode->father = father;
+
             auto newPtr(oldRoot); // copy of shared ptr to oneself
             father->ptr.emplace_back(newPtr); // lifecycle of currNode is OK even if
             father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of newNode is OK
@@ -81,7 +80,6 @@ namespace LmaoDB {
             father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of newNode is OK
             return father->balance(oldRoot);
         }
-
     }
 
     template<typename T>
@@ -119,7 +117,7 @@ namespace LmaoDB {
         }
 
         // Go to parent to find sibilings to take from
-        auto done = father->helpSibiling(key, root);
+        auto done = father->helpSibling(key, root);
         if (done) {
             return root;
         }

@@ -15,6 +15,7 @@ struct Record {
 namespace LmaoDB {
     using namespace std;
     template<typename T> class RegularNode; // for cyclic dependency
+    template<typename T> class LeafNode;
 
     template<typename T>
     class Node {
@@ -22,15 +23,15 @@ namespace LmaoDB {
         virtual Record * query(const T &key) = 0;
         virtual vector<Record *> rangeQuery(const T &l, const T &r) = 0;                       // interface
         virtual void rangeQuery(vector<Record *> &ret, const T &l, const T &r) = 0; // actual call; save movement cost
-        virtual shared_ptr<Node<T>> insert(const T &key, Record *const record, const shared_ptr<Node<T>>& oldRoot) = 0;
-        virtual shared_ptr<Node<T>> remove(const T &key, const shared_ptr<Node<T>> root) = 0;
-        virtual shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root) = 0;
+        virtual shared_ptr<Node<T>> insert(const T &key, Record * record, const shared_ptr<Node<T>>& oldRoot) = 0;
+        virtual shared_ptr<Node<T>> remove(const T &key, shared_ptr<Node<T>> root) = 0;
+        virtual shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, shared_ptr<Node<T>> root) = 0;
         virtual vector<T> getKeys() = 0;
         virtual vector<Record *> getPtrs() = 0;
         virtual void display() = 0;
-    protected:
-        const static int N = 4; // max number of key
         RegularNode<T> *father = nullptr;
+    protected:
+        const static int N = 2; // max number of key
         vector<T> keys;
         virtual shared_ptr<Node<T>> balance(const shared_ptr<Node<T>>& oldRoot) = 0;
     };
@@ -42,14 +43,14 @@ namespace LmaoDB {
     class LeafNode : public Node<T> {
         using Node<T>::keys, Node<T>::N, Node<T>::father;
     public:
-        LeafNode(LeafNode<T>* LeftPtr = nullptr);
+        explicit LeafNode(RegularNode<T>* father = nullptr);
         Record* query(const T &key);
         vector<Record *> rangeQuery(const T &l, const T &r);
         void rangeQuery(vector<Record *> &ret, const T &l, const T &r);
-        shared_ptr<Node<T>> insert(const T &key, Record *const record, const shared_ptr<Node<T>>& oldRoot);
+        shared_ptr<Node<T>> insert(const T &key, Record * record, const shared_ptr<Node<T>>& oldRoot);
 
-        shared_ptr<Node<T>> remove(const T &key, const shared_ptr<Node<T>> root);
-        shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root);
+        shared_ptr<Node<T>> remove(const T &key, shared_ptr<Node<T>> root);
+        shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, shared_ptr<Node<T>> root);
         vector<T> getKeys();
         vector<Record *> getPtrs();
         void display();
@@ -63,24 +64,23 @@ namespace LmaoDB {
     class RegularNode : public Node<T> {
         using Node<T>::keys, Node<T>::father, Node<T>::N;
     public:
-        RegularNode(RegularNode<T>* const father_); // this constructor do not register in father.
+        explicit RegularNode(RegularNode<T>* father_); // this constructor do not register in father.
         Record * query(const T &key);
         vector<Record *> rangeQuery(const T &l, const T &r);
         void rangeQuery(vector<Record *> &ret, const T &l, const T &r);
-        shared_ptr<Node<T>> insert(const T &key, Record *const record, const shared_ptr<Node<T>>& oldRoot);
-
-        shared_ptr<Node<T>> remove(const T &key, const shared_ptr<Node<T>> root);
-        bool helpSibiling(const T &key, const shared_ptr<Node<T>> root);
-        shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, const shared_ptr<Node<T>> root);
+        shared_ptr<Node<T>> insert(const T &key, Record * record, const shared_ptr<Node<T>>& oldRoot);
+        shared_ptr<Node<T>> remove(const T &key, shared_ptr<Node<T>> root);
+        bool helpSibling(const T &key, shared_ptr<Node<T>> root);
+        shared_ptr<Node<T>> mergeNodes(vector<T> keys, vector<Record *> ptrs, shared_ptr<Node<T>> root);
         vector<T> getKeys();
         vector<Record *> getPtrs();
         void display();
-        
         friend LeafNode<T>; // I need to expose insertSubNode to Leaf's private functions; no need extra template here
+        friend Node<T>; // needed for access father
     private:
         vector<shared_ptr<Node<T>>> ptr;
         Node<T>* queryImmediateNext(const T &key);
-        void insertSubNode(Node<T>* newPtr, const T &key); // insert new subnode (and manage its lifecycle), does not balance
+        void insertSubNode(Node<T>* newPtr, const T &key); // insert new sub node (and manage its lifecycle), does not balance
         shared_ptr<Node<T>> balance(const shared_ptr<Node<T>>& oldRoot); // attempt to balance current node recursively. return the new root.
     };
 }
