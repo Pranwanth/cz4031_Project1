@@ -21,7 +21,7 @@ typedef struct RecordHeader
 
 typedef struct Record {
     struct  RecordHeader header;
-    char id[11]; //Changed this from char* to char[] so the size of the record is always fixed.
+    char id[10]; //Changed this from char* to char[] so the size of the record is always fixed.
     float averageRating;
     int numVotes;
     struct Record* next;
@@ -32,6 +32,7 @@ typedef struct BlockHeader
     int id;
     int capacity;
     int remainSize;
+    int recordSize;
 } BlockHeader;
 
 
@@ -125,6 +126,7 @@ void printRecord(Record* record) {
 Block* createBlock(Block* preBlock) {
     static int blockID = 0;
     Block* newBlock = (Block*) malloc(sizeof(Block));
+    newBlock->header.recordSize = sizeof(Record);
 
     newBlock->header.id = blockID ++;
     newBlock->header.capacity = BLOCK_SIZE;
