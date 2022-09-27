@@ -6,8 +6,10 @@ SET(CMAKE_C_FLAGS "-O0 -g")
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(.)
+include_directories(BPTree)
 add_executable(LmaoDB
+        storage.h
+        storage.cpp
         BPTree.h
         BPTreeLeafNode.tpp
         BPTreeRegularNode.tpp
