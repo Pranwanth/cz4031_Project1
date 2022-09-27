@@ -21,7 +21,7 @@ struct RecordHeader {
 
 struct Record {
     struct RecordHeader header;
-    char id[11]; //Changed this from char* to char[] so the size of the record is always fixed.
+    char id[10]; //Changed this from char* to char[] so the size of the record is always fixed.
     float averageRating;
     int numVotes;
     Record *next;
@@ -31,6 +31,7 @@ struct BlockHeader {
     int id;
     int capacity;
     int remainSize;
+    int recordSize;
 };
 
 struct Block {
