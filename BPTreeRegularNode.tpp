@@ -7,7 +7,7 @@ namespace LmaoDB {
     }
 
     template<typename T, typename R>
-    R * RegularNode<T, R>::query(const T &key) {
+    vector<R *> RegularNode<T, R>::query(const T &key) {
         return queryImmediateNext(key)->query(key);
     }
 
@@ -48,7 +48,7 @@ namespace LmaoDB {
         if (keys.size() <= N) return oldRoot;
         else {
             assert(keys.size() == N + 1);
-            cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
+            // cout << "Balance() triggered: keys.size() = " << keys.size() << endl;
             auto newNode = new RegularNode(father);
             int left = (N + 1) / 2;
             // 1. Populate Right Node

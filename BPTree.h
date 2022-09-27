@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <list>
 
 namespace LmaoDB {
     using namespace std;
@@ -15,14 +16,13 @@ namespace LmaoDB {
     template<typename T, typename R>
     class Node {
     public:
-        virtual R * query(const T &key) = 0;
+        virtual vector<R *> query(const T &key) = 0;
         virtual vector<R *> rangeQuery(const T &l, const T &r) = 0;                       // interface
         virtual void rangeQuery(vector<R*> &ret, const T &l, const T &r) = 0; // actual call; save movement cost
         virtual shared_ptr<Node<T, R>> insert(const T &key, R * record, const shared_ptr<Node<T, R>>& oldRoot) = 0;
         virtual shared_ptr<Node<T, R>> remove(const T &key, shared_ptr<Node<T, R>> root) = 0;
         virtual shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<R *> ptrs, shared_ptr<Node<T, R>> root) = 0;
         virtual vector<T> getKeys() = 0;
-        virtual vector<R *> getPtrs() = 0;
         virtual void display() = 0;
         RegularNode<T, R> *father = nullptr;
     protected:
@@ -39,18 +39,18 @@ namespace LmaoDB {
         using Node<T, R>::keys, Node<T, R>::N, Node<T, R>::father;
     public:
         explicit LeafNode(RegularNode<T, R>* father = nullptr);
-        R* query(const T &key);
-        vector<R *> rangeQuery(const T &l, const T &r);
+        vector<R*> query(const T &key);
+        vector<R*> rangeQuery(const T &l, const T &r);
         void rangeQuery(vector<R *> &ret, const T &l, const T &r);
         shared_ptr<Node<T, R>> insert(const T &key, R * record, const shared_ptr<Node<T, R>>& oldRoot);
 
         shared_ptr<Node<T, R>> remove(const T &key, shared_ptr<Node<T, R>> root);
         shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<R *> ptrs, shared_ptr<Node<T, R>> root);
         vector<T> getKeys();
-        vector<R *> getPtrs();
+        vector<list<R*>> getPtrs();
         void display();
     private:
-        vector<R *> ptr;
+        vector<list<R*>> ptr;
         LeafNode<T, R> *finalPtr;
         shared_ptr<Node<T, R>> balance(const shared_ptr<Node<T, R>>& oldRoot); // attempt to balance current node recursively. return the new root.
     };
@@ -60,7 +60,7 @@ namespace LmaoDB {
         using Node<T, R>::keys, Node<T, R>::father, Node<T, R>::N;
     public:
         explicit RegularNode(RegularNode<T, R>* father_); // this constructor do not register in father.
-        R * query(const T &key);
+        vector<R *> query(const T &key);
         vector<R *> rangeQuery(const T &l, const T &r);
         void rangeQuery(vector<R *> &ret, const T &l, const T &r);
         shared_ptr<Node<T, R>> insert(const T &key, R * record, const shared_ptr<Node<T, R>>& oldRoot);

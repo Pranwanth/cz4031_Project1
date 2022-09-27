@@ -25,7 +25,7 @@ int main() {
         createRecord(line, record);
         root = root->insert(record->numVotes, record, root);
         DEBUG_CNT++;
-        cout << DEBUG_CNT << endl;
+        if (DEBUG_CNT % 10000 == 0) cout << DEBUG_CNT << endl;
         if (flag == 0) { // initial stage
             firstBlock = createBlock(nullptr);
             tempBlock = firstBlock;
@@ -35,9 +35,15 @@ int main() {
         }
 
         insertRecord(record, tempBlock);
-
     }
     free(line);
     printf("total number of blocks: %d\n", getBlockNum(firstBlock));
     fclose(fp);
+
+    // query
+    while (true) {
+        int key; cin >> key;
+        cout << "Result: " << endl;
+        for (auto e: root->query(key)) cout << " " << e->id << ", " << e->averageRating << ", " << e->numVotes << endl;
+    }
 }
