@@ -60,7 +60,8 @@ void printRecord(Record *record) {
 Block *createBlock(Block *preBlock) {
     static int blockID = 0;
     Block *newBlock = (Block *) malloc(sizeof(Block));
-
+    
+    newBlock->header.recordSize = sizeof(Record);
     newBlock->header.id = blockID++;
     newBlock->header.capacity = BLOCK_SIZE;
     newBlock->header.remainSize = BLOCK_SIZE -
