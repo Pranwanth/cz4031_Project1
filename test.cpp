@@ -2,6 +2,8 @@
 #include "storage.h"
 using namespace LmaoDB;
 
+void treeInfo(shared_ptr<Node<int, Record>> root);
+
 int main() {
     FILE *fp = fopen(DATA_PATH, "r");
     if (fp == nullptr) {

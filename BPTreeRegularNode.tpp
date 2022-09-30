@@ -183,7 +183,7 @@ namespace LmaoDB {
     
     template<typename T, typename R>
     int RegularNode<T, R>::numNodes() {
-        int total = 0
+        int total = 0;
         for (int i = 0; i < ptr.size(); i++) {
             total += ptr[i]->numNodes();
         }
