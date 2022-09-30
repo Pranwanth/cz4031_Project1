@@ -40,10 +40,37 @@ int main() {
     printf("total number of blocks: %d\n", getBlockNum(firstBlock));
     fclose(fp);
 
+    // Part 3
+    cout << "Answering part (3)" << endl;
+    treeInfo(root);
+
+    // Part 4 / 5
+    cout << endl;
+    cout << "Answering part (4 & 5)" << endl;
+
     // query
     while (true) {
         int key; cin >> key;
         cout << "Result: " << endl;
         for (auto e: root->query(key)) cout << " " << e->id << ", " << e->averageRating << ", " << e->numVotes << endl;
     }
+
+
+}
+
+// Use for part 3 and part 6
+void treeInfo(shared_ptr<Node<int, Record>> root) {
+    cout << "Parameter N: " << root->getN() << endl;
+    cout << "Number of nodes: " << root->numNodes() << endl;
+    cout << "Current tree size: " << root->treeSize() << endl;
+    cout << "Content of root node: [";
+    for (int i = 0; i < root->getKeys().size(); i++) {
+        cout << root->getKeys().at(i) << " ";
+    }
+    cout << "]" << endl;
+    cout << "Content of 1st child node: [";
+    root->displayFirstChild(true);
+    cout << "]" << endl; 
+    
+    cout << endl;
 }

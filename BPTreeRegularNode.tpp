@@ -175,4 +175,35 @@ namespace LmaoDB {
             ptr[i]->display();
         }
     }
+
+    template<typename T, typename R>
+    int RegularNode<T, R>::treeSize() {
+        return ptr[0]->treeSize() + 1;
+    }
+    
+    template<typename T, typename R>
+    int RegularNode<T, R>::numNodes() {
+        int total = 0
+        for (int i = 0; i < ptr.size(); i++) {
+            total += ptr[i]->numNodes();
+        }
+
+        return total + 1;
+    }
+    
+    template<typename T, typename R>
+    int RegularNode<T, R>::getN() {
+        return N;
+    }
+
+    template<typename T, typename R>
+    void RegularNode<T, R>::displayFirstChild(bool caller) {
+        if (caller) {
+            ptr.at(0)->displayFirstChild(false);
+        } else {
+            for (int i = 0; i < keys.size(); i++) {
+                cout << keys[i] << " ";
+            }
+        }
+    }
 }
