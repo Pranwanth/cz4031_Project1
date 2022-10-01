@@ -8,6 +8,9 @@ namespace LmaoDB {
 
     template<typename T, typename R>
     vector<R *> RegularNode<T, R>::query(const T &key) {
+        cout << "Query: Accessing node with Key = [";
+        for (int i = 0; i <= min(4, (int)keys.size() - 1); ++i) cout << keys[i] << " ";
+        cout << "...]" << endl;
         return queryImmediateNext(key)->query(key);
     }
 
@@ -75,78 +78,76 @@ namespace LmaoDB {
                 father->keys.emplace_back(extraKey);
                 return shared_ptr<Node<T, R>>(father);
             } else {
-                father->insertSubNode(newNode, newNode->keys[0]); // lifecycle of new node
+                father->insertSubNode(newNode, extraKey); // lifecycle of new node
                 return father->balance(oldRoot);
             }
         }
     }
     template<typename T, typename R>
-    shared_ptr<Node<T, R>> RegularNode<T, R>::remove(const T &key, const shared_ptr<Node<T, R>> root) {
+    shared_ptr<Node<T, R>> RegularNode<T, R>::remove(const T &key, const shared_ptr<Node<T, R>>& root) {
         return queryImmediateNext(key)->remove(key, root);
     }
     
     template<typename T, typename R>
-    bool RegularNode<T, R>::helpSibling(const T &key, const shared_ptr<Node<T, R>> root) {
-        int leftKeys = (N - 1) / 2;
-        uint32_t position = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
-        if (position != 0) {
-            vector<T> keys = this->ptr.at(position-1)->getKeys();
-            vector<R *> ptrs = this->ptr.at(position-1)->getPtrs();
-            if (keys.size() - 1 > leftKeys) {
-                this->ptr.at(position)->insert(keys.back(), ptrs.back(), root);
-                this->ptr.at(position-1)->remove(keys.back(), root);
-
-                return true;
-            }
-        }
-
-        return false;
+    bool RegularNode<T, R>::helpSibling(const T &key, const shared_ptr<Node<T, R>>& root) {
+//        int leftKeys = (N - 1) / 2;
+//        uint32_t position = lower_bound(keys.begin(), keys.end(), key) - keys.begin();
+//        if (position != 0) { // dynamic casts due to we are sure callee are leaf nodes
+//            vector<T> keys = dynamic_pointer_cast<LeafNode<T, R>>(this->ptr.at(position-1))->getKeys();
+//            vector<list<R *>> ptrs = dynamic_pointer_cast<LeafNode<T, R>>(this->ptr.at(position-1))->getPtrs();
+//            if (keys.size() - 1 > leftKeys) {
+//                dynamic_pointer_cast<LeafNode<T, R>>(this->ptr.at(position))->insert(keys.back(), ptrs.back(), root);
+//                dynamic_pointer_cast<LeafNode<T, R>>(this->ptr.at(position-1))->remove(keys.back(), root);
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     template<typename T, typename R>
-    shared_ptr<Node<T, R>> RegularNode<T, R>::mergeNodes(vector<T> keys, vector<R *> ptrs, const shared_ptr<Node<T, R>> root) {
-        // If this is called it means re-balance this entire side of the tree
-        auto loc = upper_bound(this->keys.begin(), this->keys.end(), keys.back()) - this->keys.begin();
-        this->ptr.erase(this->ptr.begin() + loc);
-        this->keys.erase(this->keys.begin() + loc);
-        
-        int minNumPtrs = N / 2;
-        if (father != nullptr) {
-            // When node still has minimum nodes, insert back in
-            if (this->ptr.size() > minNumPtrs) {
-                for (int j = 0; j < keys.size(); j++) {
-                    this->insert(keys[j], ptrs[j], root);
-                }
-
-                return root;
-            }
-            else {      
-                // Retrieve all the nodes data here 
-                for (int i = 0; i < this->keys.size(); i++) {
-                        this->ptr[i]->mergeNodes(keys, ptrs, root);
-                }
-            }
-            
-            // Try with parent node to merge
-            return father->mergeNodes(keys, ptrs, root);
-        }
-
-        // Once root is reached, check if there are ways to insert it
-        if (this->ptr.size() == 1) {
-            // When it is left with 1 pointer
-            for (int i = 0; i < keys.size(); i++) {
-                this->ptr[0]->insert(keys[i], ptrs[i], root);
-            }
-            // Remaining node becomes the new root node
-            return this->ptr[0];
-        }
-
-        // Since there are still more than 2 pointers, insert the keys and pointers
-        for (int i = 0; i < this->ptr.size(); i++) {
-            this->insert(keys[i], ptrs[i], root);
-        }
-
-        return root;
+    shared_ptr<Node<T, R>> RegularNode<T, R>::mergeNodes(vector<T> keys, vector<list<R *>> ptrs, const shared_ptr<Node<T, R>>& root) {
+//        // If this is called it means re-balance this entire side of the tree
+//        auto loc = upper_bound(this->keys.begin(), this->keys.end(), keys.back()) - this->keys.begin();
+//        this->ptr.erase(this->ptr.begin() + loc);
+//        this->keys.erase(this->keys.begin() + loc);
+//
+//        int minNumPtrs = N / 2;
+//        if (father != nullptr) {
+//            // When node still has minimum nodes, insert back in
+//            if (this->ptr.size() > minNumPtrs) {
+//                for (int j = 0; j < keys.size(); j++) {
+//                    this->insert(keys[j], ptrs[j], root);
+//                }
+//
+//                return root;
+//            }
+//            else {
+//                // Retrieve all the nodes data here
+//                for (int i = 0; i < this->keys.size(); i++) {
+//                        this->ptr[i]->mergeNodes(keys, ptrs, root);
+//                }
+//            }
+//
+//            // Try with parent node to merge
+//            return father->mergeNodes(keys, ptrs, root);
+//        }
+//
+//        // Once root is reached, check if there are ways to insert it
+//        if (this->ptr.size() == 1) {
+//            // When it is left with 1 pointer
+//            for (int i = 0; i < keys.size(); i++) {
+//                this->ptr[0]->insert(keys[i], ptrs[i], root);
+//            }
+//            // Remaining node becomes the new root node
+//            return this->ptr[0];
+//        }
+//
+//        // Since there are still more than 2 pointers, insert the keys and pointers
+//        for (int i = 0; i < this->ptr.size(); i++) {
+//            this->insert(keys[i], ptrs[i], root);
+//        }
+//
+//        return root;
     }
 
     template<typename T, typename R>

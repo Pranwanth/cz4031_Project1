@@ -1,0 +1,1 @@
+/usr/bin/c++ -O0 -g CMakeFiles/LmaoDB.dir/storage.cpp.o CMakeFiles/LmaoDB.dir/test.cpp.o -o LmaoDB 

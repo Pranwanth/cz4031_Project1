@@ -54,7 +54,7 @@ void deleteRecord(char *id, Block *block) {
 }
 
 void printRecord(Record *record) {
-    printf("Record: %s %.2f %d size: %d \n", record->id, record->averageRating, record->numVotes, record->header.size);
+    printf("Record: %s %.2f %d \n", record->id, record->averageRating, record->numVotes);
 }
 
 Block *createBlock(Block *preBlock) {
@@ -119,6 +119,8 @@ void printBlock(Block *block) {
     }
     printf("Block: id: %d, capacity: %d, remaining: %d, first record id: %s \n", block->header.id,
            block->header.capacity, block->header.remainSize, recordID);
+    auto ptr = block->firstRecord;
+    while (ptr != nullptr) printRecord(ptr), ptr = ptr->next;
 }
 
 Block *getBlock(Block *startBlock, int id) {

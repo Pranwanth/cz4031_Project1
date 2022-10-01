@@ -20,8 +20,8 @@ namespace LmaoDB {
         virtual vector<R *> rangeQuery(const T &l, const T &r) = 0;                       // interface
         virtual void rangeQuery(vector<R*> &ret, const T &l, const T &r) = 0; // actual call; save movement cost
         virtual shared_ptr<Node<T, R>> insert(const T &key, R * record, const shared_ptr<Node<T, R>>& oldRoot) = 0;
-        virtual shared_ptr<Node<T, R>> remove(const T &key, shared_ptr<Node<T, R>> root) = 0;
-        virtual shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<R *> ptrs, shared_ptr<Node<T, R>> root) = 0;
+        virtual shared_ptr<Node<T, R>> remove(const T &key, const shared_ptr<Node<T, R>>& root) = 0;
+        virtual shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<list<R *>> ptrs, const shared_ptr<Node<T, R>>& root) = 0;
         virtual vector<T> getKeys() = 0;
         virtual void display() = 0;
         virtual int treeSize() = 0;
@@ -47,9 +47,8 @@ namespace LmaoDB {
         vector<R*> rangeQuery(const T &l, const T &r);
         void rangeQuery(vector<R *> &ret, const T &l, const T &r);
         shared_ptr<Node<T, R>> insert(const T &key, R * record, const shared_ptr<Node<T, R>>& oldRoot);
-
-        shared_ptr<Node<T, R>> remove(const T &key, shared_ptr<Node<T, R>> root);
-        shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<R *> ptrs, shared_ptr<Node<T, R>> root);
+        shared_ptr<Node<T, R>> remove(const T &key, const shared_ptr<Node<T, R>>& root);
+        shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<list<R *>> ptrs, const shared_ptr<Node<T, R>>& root);
         vector<T> getKeys();
         vector<list<R*>> getPtrs();
         void display();
@@ -72,9 +71,9 @@ namespace LmaoDB {
         vector<R *> rangeQuery(const T &l, const T &r);
         void rangeQuery(vector<R *> &ret, const T &l, const T &r);
         shared_ptr<Node<T, R>> insert(const T &key, R * record, const shared_ptr<Node<T, R>>& oldRoot);
-        shared_ptr<Node<T, R>> remove(const T &key, shared_ptr<Node<T, R>> root);
-        bool helpSibling(const T &key, shared_ptr<Node<T, R>> root);
-        shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<R *> ptrs, shared_ptr<Node<T, R>> root);
+        shared_ptr<Node<T, R>> remove(const T &key, const shared_ptr<Node<T, R>>& root);
+        bool helpSibling(const T &key, const shared_ptr<Node<T, R>>& root);
+        shared_ptr<Node<T, R>> mergeNodes(vector<T> keys, vector<list<R *>> ptrs, const shared_ptr<Node<T, R>>& root);
         vector<T> getKeys();
         vector<R *> getPtrs();
         void display();
