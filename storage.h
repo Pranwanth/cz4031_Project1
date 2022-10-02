@@ -11,7 +11,7 @@
 static char PBSTR[] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
 static int PBWIDTH = 60;
 static int DISK_SIZE = 100000;
-static int BLOCK_SIZE = 500; // 200
+static int BLOCK_SIZE = 200; // 200
 static char *DATA_PATH = "data.tsv"; // TODO configure
 
 struct RecordHeader {

@@ -23,6 +23,9 @@ namespace LmaoDB {
 
     template<typename T, typename R>
     void RegularNode<T, R>::rangeQuery(vector<R *> &ret, const T &l, const T &r) {
+        cout << "Query: Accessing node with Key = [";
+        for (int i = 0; i <= min(4, (int)keys.size() - 1); ++i) cout << keys[i] << " ";
+        cout << "...]" << endl;
         queryImmediateNext(l)->rangeQuery(ret, l, r);
     }
 
